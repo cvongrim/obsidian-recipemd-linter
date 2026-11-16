@@ -1,90 +1,129 @@
-# Obsidian Sample Plugin
+# RecipeMD Linter for Obsidian
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+A user-friendly Obsidian plugin that validates and lints markdown recipes against the [RecipeMD specification](https://recipemd.org). Features real-time inline feedback, one-click line navigation, and bulk recipe checking.
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+![Obsidian](https://img.shields.io/badge/Obsidian-Plugin-blue?logo=obsidian)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open modal (simple)" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+---
 
-## First time developing plugins?
+## Features
 
-Quick starting guide for new plugin devs:
+- **Live Inline Feedback**: Displays an unobtrusive, collapsible warning and error banner pinned directly above the active recipe in your editor.
+- **Real-Time Linting**: Re-evaluates as you type so issues disappear the moment you fix them.
+- **One-Click Line Navigation**: Click any `Line X` tag in the banner or modal to scroll and jump your cursor directly to the issue.
+- **True RecipeMD Compliance**:
+  - Validates top-level `# Recipe Title`.
+  - Validates ingredient blocks enclosed between `---` horizontal rules.
+  - Validates numbered steps (`1.`, `2.`) for cooking directions.
+  - Tolerates frontmatter and metadata tables without breaking.
+- **Flexible Mode**: Also supports recipes using `# Ingredients` and `# Directions` headings.
+- **Template Generator**: Run `RecipeMD Linter: Insert RecipeMD template` to quickly scaffold a new recipe note.
+- **Status Bar Pill**: Shows live recipe compliance (`🍳 RecipeMD: ✅ Valid` or `🍳 RecipeMD: ⚠️ 2 warnings`) in the bottom right corner.
+- **Vault/Folder Linting**: Scan your entire meal plan or recipe directory at once, complete with a structured results modal and a "Copy Report" button.
+- **Ignore Lists**: Exclude non-recipe notes like `Meal Plan.md` or `Shopping List.md`.
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+---
 
-## Releasing new releases
+## Compliant RecipeMD Example
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+```markdown
+# Mom's Meatloaf
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+A very simple, classic comfort food meatloaf recipe made flavorful with onion soup mix.
 
-## Adding your plugin to the community plugin list
+*beef, easy, comfort food, dinner*
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+**8 Servings, 2 lb**
 
-## How to use
+---
 
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
+- *2 lbs* ground beef
+- *1 envelope* onion soup mix
+- *1 1/2 cups* soft bread crumbs
+- *2* eggs
+- *3/4 cup* water
+- *1/2 cup* ketchup
 
-## Manually installing the plugin
+---
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+1. Preheat oven to 350°F (175°C).
+2. In a large mixing bowl, combine ingredients until well blended.
+3. Shape into a loaf in a 9x5-inch pan.
+4. Bake at 350°F for 1 hour, or until internal temperature reaches 160°F.
+5. Let rest for 10 minutes before slicing.
 
-## Improve code quality with eslint
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- This project already has eslint preconfigured, you can invoke a check by running`npm run lint`
-- Together with a custom eslint [plugin](https://github.com/obsidianmd/eslint-plugin) for Obsidan specific code guidelines.
-- A GitHub action is preconfigured to automatically lint every commit on all branches.
+### Notes
 
-## Funding URL
-
-You can include funding URLs where people who use your plugin can financially support it.
-
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
-
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
+Any tips, substitutions, or photos:
+![[photo.webp]]
 ```
 
-If you have multiple URLs, you can also do:
+---
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
+## Commands
+
+| Command | Description |
+| :--- | :--- |
+| **Lint active recipe** | Validates the currently opened note with instant feedback. |
+| **Lint RecipeMD files in folder** | Scans all recipes in your configured recipe folder. |
+| **Insert RecipeMD template** | Pastes a clean, compliant RecipeMD template at the cursor. |
+
+---
+
+## Installation
+
+### Manual Installation
+1. Download `main.js`, `manifest.json`, and `styles.css` from the latest [Release](https://github.com/your-username/recipemd-linter/releases).
+2. Create a folder named `recipemd-linter` inside your vault's `.obsidian/plugins/` directory.
+3. Copy the files into `.obsidian/plugins/recipemd-linter/`.
+4. Open **Settings → Community plugins** in Obsidian and enable **RecipeMD Linter**.
+
+### Via BRAT
+1. Install the [Obsidian42 - BRAT](https://github.com/TfTHacker/obsidian42-brat) plugin.
+2. Run command `BRAT: Add a beta plugin for testing`.
+3. Paste the URL of this repository.
+
+---
+
+## Settings
+
+* **Directory to Lint**: The folder containing your recipes (e.g. `MealPlan` or `Recipes`).
+* **Ignored Files**: Comma-separated list of notes to skip (e.g. `Meal Plan.md, Shopping List.md`).
+* **Recipe Format Enforcement**:
+  * **Flexible** *(Recommended)*: Accepts standard RecipeMD `---` blocks or `# Headings`.
+  * **Strict**: Strictly enforces `---` horizontal rules for ingredients.
+* **Core Structure Rules**:
+  * Require `# Recipe Title`
+  * Require Ingredients list
+  * Require Directions / steps
+  * Warn if directions use bullet points instead of numbers
+* **Optional Rules**:
+  * Enforce Servings / Yield (`**4 servings**`)
+  * Enforce Tags (`*dinner, quick*`)
+  * Enforce Description paragraph
+* **Inline Feedback**: Toggle real-time inline banners and the status bar indicator.
+
+---
+
+## Development
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/recipemd-linter.git
+
+# Install dependencies
+npm install
+
+# Start development watch mode
+npm run dev
+
+# Build for production
+npm run build
 ```
 
-## API Documentation
+---
 
-See https://docs.obsidian.md
+## License
+
+This project is licensed under the [MIT License](LICENSE).
