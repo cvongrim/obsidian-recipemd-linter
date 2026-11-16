@@ -1,99 +1,320 @@
-import {App, Editor, MarkdownView, Modal, Notice, Plugin} from 'obsidian';
-import {DEFAULT_SETTINGS, MyPluginSettings, SampleSettingTab} from "./settings";
+import {
+	App,
+	Editor,
+	MarkdownView,
+	Notice,
+	Plugin,
+	TFile,
+	TFolder,
+} from 'obsidian';
+import { RecipeMDBannerManager } from './banner';
+import { lintRecipe } from './linter';
+import { LintingResultModal } from './modal';
+import { RecipeMDLinterSettingTab } from './settings';
+import {
+	DEFAULT_SETTINGS,
+	FileLintResult,
+	LintIssue,
+	RecipeMDLinterSettings,
+} from './types';
 
-// Remember to rename these classes and interfaces!
+const RECIPEMD_TEMPLATE = `# Recipe Title
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+A brief description of this dish.
+
+*tags, comma, separated*
+
+**4 servings**
+
+---
+
+- *1 tbsp* olive oil
+- *2 cloves* garlic, minced
+- *1 lb* main ingredient
+
+---
+
+1. Preheat oven or prepare cooking station.
+2. Combine ingredients and cook according to method.
+3. Let rest, slice, and serve warm.
+
+### Notes
+
+Any tips, substitutions, or storage recommendations.
+`;
+
+export default class RecipeMDLinter extends Plugin {
+	settings: RecipeMDLinterSettings;
+	bannerManager: RecipeMDBannerManager;
+	statusBarItemEl: HTMLElement | null = null;
+	private debounceTimer: number | null = null;
 
 	async onload() {
 		await this.loadSettings();
+		this.bannerManager = new RecipeMDBannerManager();
 
-		// This creates an icon in the left ribbon.
-		this.addRibbonIcon('dice', 'Sample', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
-		});
+		// Status Bar Item
+		if (this.settings.showStatusBarItem) {
+			this.statusBarItemEl = this.addStatusBarItem();
+			this.statusBarItemEl.addClass('plugin-recipemd-linter');
+			this.statusBarItemEl.addEventListener('click', () => {
+				const activeFile = this.app.workspace.getActiveFile();
+				if (activeFile && activeFile.extension === 'md') {
+					this.lintActiveFile(activeFile);
+				}
+			});
+		}
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status bar text');
-
-		// This adds a simple command that can be triggered anywhere
+		// Command: Lint all files in configured directory
 		this.addCommand({
-			id: 'open-modal-simple',
-			name: 'Open modal (simple)',
+			id: 'lint-recipemd-files',
+			name: 'Lint RecipeMD files in folder',
 			callback: () => {
-				new SampleModal(this.app).open();
-			}
+				this.lintFolder();
+			},
 		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'replace-selected',
-			name: 'Replace selected content',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				editor.replaceSelection('Sample editor command');
-			}
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-modal-complex',
-			name: 'Open modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
 
-					// This command will only show up in Command Palette when the check function returns true
+		// Command: Lint active file
+		this.addCommand({
+			id: 'lint-active-recipemd-file',
+			name: 'Lint active recipe',
+			checkCallback: (checking: boolean) => {
+				const activeFile = this.app.workspace.getActiveFile();
+				if (activeFile && activeFile.extension === 'md') {
+					if (!checking) {
+						this.lintActiveFile(activeFile);
+					}
 					return true;
 				}
 				return false;
-			}
+			},
 		});
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			new Notice("Click");
+		// Command: Insert RecipeMD Template
+		this.addCommand({
+			id: 'insert-recipemd-template',
+			name: 'Insert RecipeMD template',
+			editorCallback: (editor: Editor) => {
+				editor.replaceSelection(RECIPEMD_TEMPLATE);
+				new Notice('Inserted RecipeMD template');
+			},
 		});
 
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+		// Ribbon icon for quick linting
+		this.addRibbonIcon('chef-hat', 'Lint RecipeMD files', () => {
+			this.lintFolder();
+		});
 
+		this.addSettingTab(new RecipeMDLinterSettingTab(this.app, this));
+
+		// Real-time Event Listeners
+		this.registerEvent(
+			this.app.workspace.on('active-leaf-change', () => {
+				this.handleActiveLeafChange();
+			})
+		);
+
+		this.registerEvent(
+			this.app.workspace.on('editor-change', (editor) => {
+				if (!this.settings.liveLinting) return;
+
+				if (this.debounceTimer !== null) {
+					window.clearTimeout(this.debounceTimer);
+				}
+
+				this.debounceTimer = window.setTimeout(() => {
+					this.debounceTimer = null;
+					const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+					if (view && view.file) {
+						this.lintView(view, editor.getValue());
+					}
+				}, 350);
+			})
+		);
+
+		this.app.workspace.onLayoutReady(() => {
+			this.handleActiveLeafChange();
+		});
 	}
 
 	onunload() {
+		if (this.bannerManager) {
+			this.bannerManager.removeAll();
+		}
+		if (this.statusBarItemEl) {
+			this.statusBarItemEl.remove();
+		}
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<MyPluginSettings>);
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 	}
 
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
-}
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
+	private isIgnored(fileName: string): boolean {
+		if (!this.settings.ignoredFiles) return false;
+		const ignored = this.settings.ignoredFiles
+			.split(',')
+			.map((s) => s.trim().toLowerCase())
+			.filter((s) => s.length > 0);
+
+		const lowerName = fileName.toLowerCase();
+		return ignored.some(
+			(pattern) => lowerName === pattern || lowerName.includes(pattern)
+		);
 	}
 
-	onOpen() {
-		let {contentEl} = this;
-		contentEl.setText('Woah!');
+	isRecipeFile(file: TFile | null): boolean {
+		if (!file || file.extension !== 'md') return false;
+		if (this.isIgnored(file.name)) return false;
+		if (this.settings.lintDirectory) {
+			return (
+				file.path.startsWith(this.settings.lintDirectory + '/') ||
+				file.path === this.settings.lintDirectory
+			);
+		}
+		return true;
 	}
 
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
+	private getMarkdownFilesRecursive(folder: TFolder): TFile[] {
+		let files: TFile[] = [];
+		for (const child of folder.children) {
+			if (child instanceof TFile && child.extension === 'md') {
+				if (!this.isIgnored(child.name)) {
+					files.push(child);
+				}
+			} else if (child instanceof TFolder) {
+				files = files.concat(this.getMarkdownFilesRecursive(child));
+			}
+		}
+		return files;
+	}
+
+	handleActiveLeafChange() {
+		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (view && view.file) {
+			this.lintView(view);
+		} else {
+			this.updateStatusBar(null, []);
+		}
+	}
+
+	refreshActiveView() {
+		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (view) {
+			this.lintView(view);
+		}
+	}
+
+	lintView(view: MarkdownView, content?: string) {
+		const file = view.file;
+		if (!file || !this.isRecipeFile(file)) {
+			this.bannerManager.remove(view);
+			this.updateStatusBar(null, []);
+			return;
+		}
+
+		const rawContent = content ?? view.editor.getValue();
+		const issues = lintRecipe(rawContent, file.path, file.name, this.settings);
+
+		if (this.settings.showInlineBanner) {
+			this.bannerManager.update(view, file, issues);
+		} else {
+			this.bannerManager.remove(view);
+		}
+
+		if (this.settings.showStatusBarItem) {
+			this.updateStatusBar(file, issues);
+		}
+	}
+
+	private updateStatusBar(file: TFile | null, issues: LintIssue[]) {
+		if (!this.statusBarItemEl) return;
+
+		if (!file || !this.settings.showStatusBarItem) {
+			this.statusBarItemEl.setText('');
+			this.statusBarItemEl.removeAttribute('title');
+			return;
+		}
+
+		if (issues.length === 0) {
+			this.statusBarItemEl.setText('🍳 RecipeMD: ✅ Valid');
+			this.statusBarItemEl.setAttribute(
+				'title',
+				`${file.basename} is compliant with RecipeMD (Click to re-lint)`
+			);
+		} else {
+			const errors = issues.filter((i) => i.severity === 'error').length;
+			const warnings = issues.filter((i) => i.severity === 'warning').length;
+			const textParts: string[] = [];
+			if (errors > 0) textParts.push(`${errors} error${errors > 1 ? 's' : ''}`);
+			if (warnings > 0) textParts.push(`${warnings} warning${warnings > 1 ? 's' : ''}`);
+			this.statusBarItemEl.setText(`🍳 RecipeMD: ⚠️ ${textParts.join(', ')}`);
+			this.statusBarItemEl.setAttribute(
+				'title',
+				`${issues.length} issue(s) in ${file.basename} (Click to open report)`
+			);
+		}
+	}
+
+	async lintFolder() {
+		const lintDirectory = this.settings.lintDirectory;
+		if (!lintDirectory) {
+			new Notice('Please set the directory to lint in the RecipeMD Linter settings.');
+			return;
+		}
+
+		const folder = this.app.vault.getAbstractFileByPath(lintDirectory);
+		if (!(folder instanceof TFolder)) {
+			new Notice(`The directory "${lintDirectory}" does not exist in your vault.`);
+			return;
+		}
+
+		const files = this.getMarkdownFilesRecursive(folder);
+		if (files.length === 0) {
+			new Notice(`No markdown files found in "${lintDirectory}".`);
+			return;
+		}
+
+		const results: FileLintResult[] = [];
+
+		for (const file of files) {
+			const content = await this.app.vault.cachedRead(file);
+			const issues = lintRecipe(content, file.path, file.name, this.settings);
+			if (issues.length > 0) {
+				results.push({
+					file: file.basename,
+					filePath: file.path,
+					issues,
+				});
+			}
+		}
+
+		if (results.length === 0) {
+			new Notice(`🎉 All ${files.length} recipes in "${lintDirectory}" are compliant with RecipeMD!`);
+		} else {
+			new LintingResultModal(this.app, results, files.length).open();
+		}
+	}
+
+	async lintActiveFile(file: TFile) {
+		const content = await this.app.vault.cachedRead(file);
+		const issues = lintRecipe(content, file.path, file.name, this.settings);
+
+		if (issues.length === 0) {
+			new Notice(`✅ "${file.basename}" is fully compliant with RecipeMD!`);
+		} else {
+			const results: FileLintResult[] = [
+				{
+					file: file.basename,
+					filePath: file.path,
+					issues,
+				},
+			];
+			new LintingResultModal(this.app, results, 1).open();
+		}
 	}
 }

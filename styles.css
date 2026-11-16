@@ -1,8 +1,316 @@
-/*
+/* RecipeMD Linter Styles */
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.recipemd-linter-modal {
+	padding: 6px;
+}
 
-If your plugin does not need CSS, delete this file.
+.recipemd-modal-header {
+	margin-bottom: 12px;
+	border-bottom: 1px solid var(--background-modifier-border);
+	padding-bottom: 8px;
+}
 
-*/
+.recipemd-modal-header h2 {
+	margin: 0;
+	font-size: 1.4rem;
+}
+
+/* Stats Bar */
+.recipemd-stats-bar {
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-bottom: 16px;
+	padding: 8px 12px;
+	background-color: var(--background-secondary);
+	border-radius: 6px;
+	font-size: 0.9rem;
+}
+
+.recipemd-stat-item {
+	font-weight: 500;
+	color: var(--text-normal);
+}
+
+.recipemd-stat-success {
+	color: var(--text-success, #48c774);
+}
+
+.recipemd-stat-error {
+	color: var(--text-error, #f14668);
+}
+
+.recipemd-stat-warning {
+	color: var(--text-warning, #ffdd57);
+}
+
+/* Empty State */
+.recipemd-empty-state {
+	text-align: center;
+	padding: 30px 20px;
+}
+
+.recipemd-empty-icon {
+	font-size: 2.5rem;
+	margin-bottom: 10px;
+}
+
+/* Results Container */
+.recipemd-results-container {
+	max-height: 60vh;
+	overflow-y: auto;
+	overflow-x: hidden;
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	padding: 4px 6px 4px 2px;
+}
+
+/* File Card */
+.recipemd-file-card {
+	flex-shrink: 0;
+	min-height: fit-content;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 8px;
+	background-color: var(--background-primary);
+}
+
+.recipemd-file-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 10px 14px;
+	background-color: var(--background-secondary-alt);
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.recipemd-file-title strong {
+	font-size: 1.05rem;
+	color: var(--text-accent);
+}
+
+.recipemd-file-path {
+	font-size: 0.8rem;
+	color: var(--text-muted);
+	margin-left: 6px;
+}
+
+.recipemd-open-btn {
+	font-size: 0.8rem;
+	padding: 4px 12px;
+	flex-shrink: 0;
+}
+
+/* Issues */
+.recipemd-issues-list {
+	padding: 10px 14px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.recipemd-issue-row {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 8px 12px;
+	border-radius: 6px;
+	background-color: var(--background-secondary);
+	border-left: 4px solid transparent;
+}
+
+.recipemd-issue-row.recipemd-severity-error {
+	border-left-color: var(--text-error, #f14668);
+}
+
+.recipemd-issue-row.recipemd-severity-warning {
+	border-left-color: var(--text-warning, #ffdd57);
+}
+
+.recipemd-issue-meta {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.recipemd-badge {
+	font-size: 0.7rem;
+	font-weight: 700;
+	padding: 2px 6px;
+	border-radius: 4px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.recipemd-badge-error {
+	background-color: rgba(241, 70, 104, 0.2);
+	color: var(--text-error, #f14668);
+}
+
+.recipemd-badge-warning {
+	background-color: rgba(255, 221, 87, 0.2);
+	color: var(--text-warning, #ffdd57);
+}
+
+.recipemd-line-tag {
+	cursor: pointer;
+	font-size: 0.75rem;
+	color: var(--text-accent);
+	text-decoration: underline;
+	font-weight: 500;
+}
+
+.recipemd-line-tag:hover {
+	color: var(--text-accent-hover);
+}
+
+.recipemd-issue-message {
+	font-weight: 600;
+	color: var(--text-normal);
+	font-size: 0.95rem;
+	line-height: 1.4;
+}
+
+.recipemd-issue-suggestion {
+	font-size: 0.85rem;
+	color: var(--text-muted);
+	white-space: pre-wrap;
+	background-color: var(--background-primary);
+	padding: 8px 12px;
+	border-radius: 4px;
+	border-left: 3px solid var(--text-accent);
+	line-height: 1.4;
+}
+
+/* Modal Footer */
+.recipemd-modal-footer {
+	margin-top: 16px;
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	border-top: 1px solid var(--background-modifier-border);
+	padding-top: 12px;
+}
+
+
+/* =========================================
+   Inline Note Banner Styles
+   ========================================= */
+
+.recipemd-inline-banner {
+	margin: 0;
+	padding: 8px 14px;
+	border-bottom: 1px solid var(--background-modifier-border);
+	background-color: var(--background-secondary);
+	border-left: 4px solid transparent;
+	flex-shrink: 0;
+	z-index: 5;
+}
+
+.recipemd-inline-banner.banner-has-errors {
+	border-left-color: var(--text-error, #f14668);
+}
+
+.recipemd-inline-banner.banner-has-warnings {
+	border-left-color: var(--text-warning, #ffdd57);
+}
+
+.recipemd-banner-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 10px;
+}
+
+.recipemd-banner-header-left {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 600;
+	font-size: 0.9rem;
+}
+
+.recipemd-banner-icon svg {
+	width: 18px;
+	height: 18px;
+	vertical-align: middle;
+}
+
+.recipemd-inline-banner.banner-has-errors .recipemd-banner-icon {
+	color: var(--text-error, #f14668);
+}
+
+.recipemd-inline-banner.banner-has-warnings .recipemd-banner-icon {
+	color: var(--text-warning, #ffdd57);
+}
+
+.recipemd-banner-header-right {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.recipemd-banner-header-right .clickable-icon {
+	cursor: pointer;
+	padding: 3px;
+	border-radius: 4px;
+}
+
+.recipemd-banner-body {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 10px;
+	max-height: 220px;
+	overflow-y: auto;
+	padding-right: 4px;
+}
+
+.recipemd-banner-issue-row {
+	padding: 6px 10px;
+	border-radius: 6px;
+	background-color: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.recipemd-banner-issue-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.recipemd-banner-line-tag {
+	cursor: pointer;
+	font-size: 0.75rem;
+	color: var(--text-accent);
+	text-decoration: underline;
+	font-weight: 600;
+}
+
+.recipemd-banner-line-tag:hover {
+	color: var(--text-accent-hover);
+}
+
+.recipemd-banner-issue-msg {
+	font-size: 0.85rem;
+	font-weight: 500;
+	color: var(--text-normal);
+}
+
+.recipemd-banner-issue-hint {
+	font-size: 0.8rem;
+	color: var(--text-muted);
+	background-color: var(--background-secondary);
+	padding: 4px 8px;
+	border-radius: 4px;
+	white-space: pre-wrap;
+	border-left: 2px solid var(--text-accent);
+}
+
+/* Status Bar Pill */
+.status-bar-item.plugin-recipemd-linter {
+	cursor: pointer;
+}
