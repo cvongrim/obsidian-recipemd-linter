@@ -1,5 +1,5 @@
-import { App, MarkdownView, Modal, Notice, setIcon } from 'obsidian';
-import { FileLintResult, LintIssue } from './types';
+import { App, MarkdownView, Modal, Notice } from 'obsidian';
+import { FileLintResult } from './types';
 
 export class LintingResultModal extends Modal {
 	results: FileLintResult[];
@@ -14,8 +14,6 @@ export class LintingResultModal extends Modal {
 	onOpen() {
 		const { contentEl } = this;
 		this.modalEl.addClass('recipemd-modal-container');
-		this.modalEl.style.width = '680px';
-		this.modalEl.style.maxWidth = '90vw';
 
 		contentEl.empty();
 		contentEl.addClass('recipemd-linter-modal');
@@ -25,7 +23,6 @@ export class LintingResultModal extends Modal {
 		header.createEl('h2', { text: 'RecipeMD Linting Results' });
 
 		// Calculate stats
-		const totalIssues = this.results.reduce((acc, r) => acc + r.issues.length, 0);
 		const totalErrors = this.results.reduce(
 			(acc, r) => acc + r.issues.filter((i) => i.severity === 'error').length,
 			0
@@ -62,7 +59,7 @@ export class LintingResultModal extends Modal {
 		// Empty State
 		if (this.results.length === 0) {
 			const emptyState = contentEl.createDiv({ cls: 'recipemd-empty-state' });
-			emptyState.createEl('div', {
+			emptyState.createDiv({
 				cls: 'recipemd-empty-icon',
 				text: '🎉',
 			});
@@ -83,7 +80,7 @@ export class LintingResultModal extends Modal {
 			const fileHeader = fileCard.createDiv({ cls: 'recipemd-file-header' });
 			const fileTitle = fileHeader.createDiv({ cls: 'recipemd-file-title' });
 			fileTitle.createEl('strong', { text: fileResult.file });
-			fileTitle.createEl('span', {
+			fileTitle.createSpan({
 				cls: 'recipemd-file-path',
 				text: ` (${fileResult.filePath})`,
 			});
@@ -93,7 +90,7 @@ export class LintingResultModal extends Modal {
 				text: 'Open File',
 			});
 			openBtn.addEventListener('click', () => {
-				this.app.workspace.openLinkText(fileResult.filePath, fileResult.filePath);
+				void this.app.workspace.openLinkText(fileResult.filePath, fileResult.filePath);
 			});
 
 			// Issue Items
@@ -117,7 +114,7 @@ export class LintingResultModal extends Modal {
 						text: `Line ${issue.line}`,
 					});
 					lineTag.addEventListener('click', () => {
-						this.openFileLine(fileResult.filePath, issue.line!);
+						void this.openFileLine(fileResult.filePath, issue.line!);
 					});
 				}
 
@@ -130,7 +127,7 @@ export class LintingResultModal extends Modal {
 					const suggestionEl = issueRow.createDiv({
 						cls: 'recipemd-issue-suggestion',
 					});
-					suggestionEl.createEl('span', { text: '💡 ' + issue.suggestion });
+					suggestionEl.createSpan({ text: '💡 ' + issue.suggestion });
 				}
 			}
 		}
@@ -143,7 +140,7 @@ export class LintingResultModal extends Modal {
 		});
 		copyBtn.addEventListener('click', () => {
 			const textReport = this.generateTextReport();
-			navigator.clipboard.writeText(textReport);
+			void navigator.clipboard.writeText(textReport);
 			new Notice('Linting report copied to clipboard!');
 		});
 
@@ -157,7 +154,6 @@ export class LintingResultModal extends Modal {
 	}
 
 	private async openFileLine(filePath: string, line: number) {
-		const leaf = this.app.workspace.getLeaf(false);
 		await this.app.workspace.openLinkText(filePath, filePath, false);
 		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 		if (view && view.editor) {

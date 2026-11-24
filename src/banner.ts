@@ -136,7 +136,7 @@ export class RecipeMDBannerManager {
 	}
 
 	removeAll() {
-		document
+		activeDocument
 			.querySelectorAll('.recipemd-inline-banner')
 			.forEach((el) => el.remove());
 	}

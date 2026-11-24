@@ -13,7 +13,6 @@ export class RecipeMDLinterSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		containerEl.createEl('h2', { text: 'RecipeMD Linter Settings' });
 
 		new Setting(containerEl)
 			.setName('Directory to Lint')
@@ -57,7 +56,7 @@ export class RecipeMDLinterSettingTab extends PluginSettingTab {
 					})
 			);
 
-		containerEl.createEl('h3', { text: 'Core Structure Rules' });
+		new Setting(containerEl).setName('Core Structure Rules').setHeading();
 
 		new Setting(containerEl)
 			.setName('Require Recipe Title')
@@ -107,7 +106,7 @@ export class RecipeMDLinterSettingTab extends PluginSettingTab {
 					})
 			);
 
-		containerEl.createEl('h3', { text: 'Optional Recipe Elements' });
+		new Setting(containerEl).setName('Optional Recipe Elements').setHeading();
 
 		new Setting(containerEl)
 			.setName('Enforce Servings / Yield')
@@ -145,7 +144,7 @@ export class RecipeMDLinterSettingTab extends PluginSettingTab {
 					})
 			);
 
-		containerEl.createEl('h3', { text: 'Inline Feedback & UI' });
+		new Setting(containerEl).setName('Inline Feedback & UI').setHeading();
 
 		new Setting(containerEl)
 			.setName('Show Inline Banner in Active Note')
