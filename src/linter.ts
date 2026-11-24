@@ -167,7 +167,7 @@ export function lintRecipe(
 
 		// Scan content following the ingredients block
 		const searchStart = hrEndIndex > -1 ? hrEndIndex + 1 : 0;
-		let insideDirectionsHeading = false;
+		
 
 		for (let i = searchStart; i < bodyLines.length; i++) {
 			const rawLine = bodyLines[i];
@@ -180,7 +180,7 @@ export function lintRecipe(
 			}
 
 			if (/^#{1,4}\s+(Directions|Instructions|Steps|Method|Preparation)/i.test(line)) {
-				insideDirectionsHeading = true;
+				
 				if (!directionsLine) directionsLine = fmLineCount + i + 1;
 				continue;
 			}

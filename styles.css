@@ -314,3 +314,8 @@
 .status-bar-item.plugin-recipemd-linter {
 	cursor: pointer;
 }
+
+.recipemd-modal-container {
+	width: 680px;
+	max-width: 90vw;
+}

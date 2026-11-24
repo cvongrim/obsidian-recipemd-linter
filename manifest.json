@@ -2,7 +2,7 @@
 	"id": "recipemd-linter",
 	"name": "RecipeMD Linter",
 	"version": "1.0.0",
-	"minAppVersion": "0.15.0",
+	"minAppVersion": "1.5.7",
 	"description": "Lints markdown files to ensure they follow the RecipeMD format.",
 	"author": "Gemini",
 	"authorUrl": "",

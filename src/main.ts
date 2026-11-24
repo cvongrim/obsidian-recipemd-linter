@@ -1,5 +1,4 @@
 import {
-	App,
 	Editor,
 	MarkdownView,
 	Notice,
@@ -60,7 +59,7 @@ export default class RecipeMDLinter extends Plugin {
 			this.statusBarItemEl.addEventListener('click', () => {
 				const activeFile = this.app.workspace.getActiveFile();
 				if (activeFile && activeFile.extension === 'md') {
-					this.lintActiveFile(activeFile);
+					void this.lintActiveFile(activeFile);
 				}
 			});
 		}
@@ -70,7 +69,7 @@ export default class RecipeMDLinter extends Plugin {
 			id: 'lint-recipemd-files',
 			name: 'Lint RecipeMD files in folder',
 			callback: () => {
-				this.lintFolder();
+				void this.lintFolder();
 			},
 		});
 
@@ -82,7 +81,7 @@ export default class RecipeMDLinter extends Plugin {
 				const activeFile = this.app.workspace.getActiveFile();
 				if (activeFile && activeFile.extension === 'md') {
 					if (!checking) {
-						this.lintActiveFile(activeFile);
+						void this.lintActiveFile(activeFile);
 					}
 					return true;
 				}
@@ -102,7 +101,7 @@ export default class RecipeMDLinter extends Plugin {
 
 		// Ribbon icon for quick linting
 		this.addRibbonIcon('chef-hat', 'Lint RecipeMD files', () => {
-			this.lintFolder();
+			void this.lintFolder();
 		});
 
 		this.addSettingTab(new RecipeMDLinterSettingTab(this.app, this));
@@ -147,36 +146,34 @@ export default class RecipeMDLinter extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		const data = (await this.loadData()) as Partial<RecipeMDLinterSettings> | null;
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, data);
 	}
 
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
 
+	private isRecipeFile(file: TFile): boolean {
+		if (file.extension !== 'md') return false;
+
+		const lintDir = this.settings.lintDirectory.trim();
+		if (lintDir && !file.path.startsWith(lintDir)) {
+			return false;
+		}
+
+		return !this.isIgnored(file.name);
+	}
+
 	private isIgnored(fileName: string): boolean {
-		if (!this.settings.ignoredFiles) return false;
-		const ignored = this.settings.ignoredFiles
+		if (!this.settings.ignoredFiles.trim()) return false;
+		const ignoredPatterns = this.settings.ignoredFiles
 			.split(',')
 			.map((s) => s.trim().toLowerCase())
 			.filter((s) => s.length > 0);
 
 		const lowerName = fileName.toLowerCase();
-		return ignored.some(
-			(pattern) => lowerName === pattern || lowerName.includes(pattern)
-		);
-	}
-
-	isRecipeFile(file: TFile | null): boolean {
-		if (!file || file.extension !== 'md') return false;
-		if (this.isIgnored(file.name)) return false;
-		if (this.settings.lintDirectory) {
-			return (
-				file.path.startsWith(this.settings.lintDirectory + '/') ||
-				file.path === this.settings.lintDirectory
-			);
-		}
-		return true;
+		return ignoredPatterns.some((pattern) => lowerName.includes(pattern));
 	}
 
 	private getMarkdownFilesRecursive(folder: TFolder): TFile[] {
